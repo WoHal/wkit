@@ -1,0 +1,33 @@
+doctype html
+html
+    head
+        title=hhh
+        style(type="text/css").
+            .file-list {
+                font-size: 0;
+            }
+            .file-list .item {
+                display: inline-block;
+                margin: 10px 5px;
+                padding: 5px;
+                width: 30%;
+                font-size: 20px;
+                line-height: 27px;
+                border: 1px solid #f5f5f5;
+                border-radius: 5px;
+                cursor: pointer;
+            }
+            .file-list .item:hover {
+                background-color: #e5e5e5;
+            }
+            .file-list .item a{
+                display: block;
+                text-decoration: none;
+            }
+    body
+        ul.file-list(style={
+            'font-size': 0
+        })
+            each file in files
+                li.item
+                    a(href=file)=file

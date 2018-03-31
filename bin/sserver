@@ -1,0 +1,8 @@
+#!/usr/bin/env node
+
+'use strict';
+
+var cli = require('../cli'),
+    cmd = process.argv[2];
+
+cli(cmd);
