@@ -11,6 +11,12 @@ module.exports = path => {
             return 'application/javascript';
         case '.css':
             return 'text/css';
+        case '.jpg':
+        case '.jpeg':
+        case '.svg':
+        case '.png':
+        case '.gif':
+            return 'image/*';
         default:
             return 'text/html';
     }

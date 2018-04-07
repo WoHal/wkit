@@ -3,7 +3,7 @@ const startServer = require('./server');
 function run(cmd) {
     console.log(cmd);
     switch (cmd) {
-        case 'start':
+        case 'server':
             startServer()
             break;
         default:
