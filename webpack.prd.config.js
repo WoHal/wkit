@@ -12,11 +12,11 @@ baseConfig.plugins = [];
 let config = merge(baseConfig, {
     output: {
         path: __dirname + '/dist',
-        filename: '[name].[chunkhash].js'
+        filename: '[name]@[chunkhash].js'
     },
     plugins: [
         new ExtractTextPlugin({
-            filename: '[name].[contenthash].css'
+            filename: '[name]@[contenthash].css'
         }),
         new UglifyJsPlugin({
             uglifyOptions: {

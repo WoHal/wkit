@@ -4,31 +4,51 @@ const JSON5 = require('json5');
 const Koa = require('koa');
 const app = new Koa();
 const webpack = require('webpack');
-const middleware = require('koa-webpack-dev-middleware');
+const wdm = require('koa-webpack-dev-middleware');
 const webpackConfig = require('./webpack.config');
-const merge = require('webpack-merge');
+const extend = require('extend');
 
 const pageRender = require('./page');
 const getContentType = require('./contentType');
 
-function initConfig() {
-    if (fs.existsSync(path.join(__dirname, 'config.js'))) {
-        const config = fs.readFileSync(path.join(__dirname, 'config.js'));
+function getConfig(pathDir) {
+    const configPath = path.join(__dirname, pathDir, 'config.js');
+
+    if (fs.existsSync(configPath)) {
         try {
-            return JSON5.parse(config);
+            let config = require(configPath);
+
+            for (let key in config.entry) {
+                config.entry[key] = path.join(__dirname, pathDir, config.entry[key]);
+            }
+            return extend({}, webpackConfig, config);
         } catch(e) {
             throw new Error('配置文件格式不正确');
         }
     }
     return {
         entry: {
-            index: 'src/index.js'
+            'dist/index': 'src/index.js'
+        },
+        output: {
+            path: path.relative(__dirname, '/'),
+            filename: '[name].js'
         }
     };
 }
 
-function autoindex(filepath) {
+function autoindex(filepath, ctx) {
     const curDir = path.join(__dirname, filepath);
+    if (/\/dist\//.test(curDir)) {
+        filepath = path.join(__dirname, filepath).slice(1).split(/\//);
+        const content = filepath.reduce((res, item) => {
+            return res[item];
+        }, ctx.webpack.fileSystem.data) || 'file not found';
+        return {
+            status: 200,
+            content: content.toString()
+        };
+    }
     if (fs.existsSync(curDir)) {
         const stats = fs.statSync(curDir);
         if (stats.isFile()) {
@@ -55,29 +75,36 @@ function autoindex(filepath) {
 
 function start(port) {
     let entry = {};
-    let serverConfig = initConfig();
-    console.log(serverConfig)
-    // serverConfig.entry.forEach(item => {
-    //     entry[path.join(__dirname, 'dist/' + item).replace(/\.(js|s?css)$/i, '')] = path.join(__dirname, item);
-    // });
-    // serverConfig.entry = entry;
-
-    // const config = merge(serverConfig, webpackConfig);
-    // const compiler = webpack(config);
-
-    // app.use(middleware(compiler));
+    
     app.use(async (ctx, next) => {
         const {request, response} = ctx;
         const {url} = request;
-        const {status, content} = autoindex(url);
+        request.url = url.replace(/@[^.]+/i, '');
+
+
+        if (/\/dist\//.test(url)) {
+            const projectName = url.match(/\/([^/]+)/)[1];
+            const config = getConfig(projectName);
+            console.log(config)
+            const compiler = webpack(config);
+            const middleware = wdm(compiler);
+            await middleware(ctx, next);
+        } else {
+            await next();
+        }
+
+    });
+
+    app.use(async (ctx, next) => {
+        const {request, response} = ctx;
+        const {url} = request;
+        const {status, content} = autoindex(url, ctx);
 
         response.set('Content-Type', getContentType(url));
         response.status = status;
         response.body = content;
 
-        console.log(`Status: ${status} --- ${url}`);
-
-        next();
+        await next();
     });
 
     app.listen(port || 3000);

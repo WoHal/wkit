@@ -7,7 +7,7 @@ const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 const webpackConfig = {
     output: {
-        path: __dirname + '/dist',
+        path: __dirname + '/',
         filename: '[name].js'
     },
     resolve: {
@@ -31,6 +31,15 @@ const webpackConfig = {
             {
                 test: /\.(woff2?|eot|ttf|otf|svg)(\?.*)?$/,
                 loader: 'url-loader'
+            },
+            {
+                test: /\.js$/,
+                use: {
+                    loader: 'babel-loader',
+                    options: {
+                        presets: ['env', 'stage-0']
+                    }
+                }
             }
         ]
     },

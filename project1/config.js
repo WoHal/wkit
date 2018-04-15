@@ -1,3 +1,9 @@
 module.exports = {
-    entry: 'index.js'
+    entry: {
+        'dist/test': 'test.js'
+    },
+    output: {
+        path: __dirname + '/',
+        filename: '[name].js'
+    }
 }
